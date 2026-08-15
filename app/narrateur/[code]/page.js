@@ -19,6 +19,8 @@ export default function Narrateur() {
   const [modeDistribution, setModeDistribution] = useState("auto"); // 'auto' | 'manuel'
   const [assignationManuelle, setAssignationManuelle] = useState({});
   const [choixMaireOuvert, setChoixMaireOuvert] = useState(false);
+  const [choixAmoureuxA, setChoixAmoureuxA] = useState("");
+  const [choixAmoureuxB, setChoixAmoureuxB] = useState("");
 
   const lienJoueur = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -279,20 +281,83 @@ export default function Narrateur() {
     setAssignationManuelle((prev) => ({ ...prev, [joueurId]: roleId }));
   }
 
-  async function eliminerJoueur(joueurId) {
-    await supabase
-      .from("joueurs")
-      .update({ vivant: false })
-      .eq("id", joueurId);
-
-    // Si le joueur éliminé était le maire, on retire le titre : le
-    // narrateur devra désigner un successeur (bandeau ci-dessous).
+  async function marquerVivantFaux(joueurId) {
+    await supabase.from("joueurs").update({ vivant: false }).eq("id", joueurId);
     if (partie?.maire_id === joueurId) {
       await supabase
         .from("parties")
         .update({ maire_id: null })
         .eq("id", partie.id);
     }
+  }
+
+  async function eliminerJoueur(joueurId) {
+    const joueur = joueurs.find((j) => j.id === joueurId);
+    await marquerVivantFaux(joueurId);
+
+    // Cupidon : l'amoureux meurt aussi de chagrin
+    if (joueur?.amoureux_id) {
+      const amoureux = joueurs.find((j) => j.id === joueur.amoureux_id);
+      if (amoureux && amoureux.vivant) {
+        const confirmer = window.confirm(
+          `${joueur.nom} était amoureux(se) de ${amoureux.nom}.\n\nSelon les règles, ${amoureux.nom} meurt aussi de chagrin.\n\nL'éliminer également ?`
+        );
+        if (confirmer) {
+          await marquerVivantFaux(amoureux.id);
+        }
+      }
+    }
+
+    // Enfant Sauvage : si son modèle vient de mourir, il devient Loup-Garou
+    const enfants = joueurs.filter(
+      (j) =>
+        j.modele_id === joueurId &&
+        j.role === "enfant-sauvage" &&
+        j.vivant &&
+        j.id !== joueurId
+    );
+    for (const enfant of enfants) {
+      const confirmer = window.confirm(
+        `${joueur?.nom || "Ce joueur"} était le modèle de l'Enfant Sauvage (${enfant.nom}).\n\nSelon les règles, ${enfant.nom} devient Loup-Garou dès maintenant.\n\nEffectuer la transformation ?`
+      );
+      if (confirmer) {
+        await supabase
+          .from("joueurs")
+          .update({ role: "loup-garou" })
+          .eq("id", enfant.id);
+      }
+    }
+  }
+
+  async function lierAmoureux() {
+    if (!choixAmoureuxA || !choixAmoureuxB || choixAmoureuxA === choixAmoureuxB)
+      return;
+    await supabase
+      .from("joueurs")
+      .update({ amoureux_id: choixAmoureuxB })
+      .eq("id", choixAmoureuxA);
+    await supabase
+      .from("joueurs")
+      .update({ amoureux_id: choixAmoureuxA })
+      .eq("id", choixAmoureuxB);
+    setChoixAmoureuxA("");
+    setChoixAmoureuxB("");
+  }
+
+  async function delierAmoureux() {
+    const paire = joueurs.filter((j) => j.amoureux_id);
+    await Promise.all(
+      paire.map((j) =>
+        supabase.from("joueurs").update({ amoureux_id: null }).eq("id", j.id)
+      )
+    );
+  }
+
+  async function designerModele(enfantId, modeleId) {
+    await supabase
+      .from("joueurs")
+      .update({ modele_id: modeleId || null })
+      .eq("id", enfantId);
   }
 
   async function retablirJoueur(joueurId) {
@@ -348,7 +413,13 @@ export default function Narrateur() {
       (joueursActuels || []).map((j) =>
         supabase
           .from("joueurs")
-          .update({ dernier_role: j.role, role: null, vivant: true })
+          .update({
+            dernier_role: j.role,
+            role: null,
+            vivant: true,
+            amoureux_id: null,
+            modele_id: null,
+          })
           .eq("id", j.id)
       )
     );
@@ -391,6 +462,12 @@ export default function Narrateur() {
   const vivants = joueurs.filter((j) => j.vivant);
   const morts = joueurs.filter((j) => !j.vivant);
   const maire = joueurs.find((j) => j.id === partie.maire_id);
+  const cupidonPresent = joueurs.some((j) => j.role === "cupidon");
+  const enfantsSauvages = joueurs.filter((j) => j.role === "enfant-sauvage");
+  const premierAmoureux = joueurs.find((j) => j.amoureux_id);
+  const paireAmoureux = premierAmoureux
+    ? [premierAmoureux, joueurs.find((j) => j.id === premierAmoureux.amoureux_id)]
+    : null;
 
   return (
     <main className="page">
@@ -529,6 +606,111 @@ export default function Narrateur() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {distribue && cupidonPresent && (
+        <div className="card">
+          <h2>Couple d'amoureux (Cupidon)</h2>
+          {paireAmoureux && paireAmoureux[1] ? (
+            <>
+              <p className="lede" style={{ margin: "0 0 12px", fontSize: 14 }}>
+                💘 {paireAmoureux[0].nom} et {paireAmoureux[1].nom}
+              </p>
+              <button
+                className="btn btn-secondary btn-block"
+                onClick={delierAmoureux}
+              >
+                Modifier le couple
+              </button>
+            </>
+          ) : (
+            <div className="stack">
+              <select
+                className="role-select"
+                style={{ maxWidth: "100%" }}
+                value={choixAmoureuxA}
+                onChange={(e) => setChoixAmoureuxA(e.target.value)}
+              >
+                <option value="">Premier amoureux...</option>
+                {joueurs.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.nom}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="role-select"
+                style={{ maxWidth: "100%" }}
+                value={choixAmoureuxB}
+                onChange={(e) => setChoixAmoureuxB(e.target.value)}
+              >
+                <option value="">Second amoureux...</option>
+                {joueurs.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.nom}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn btn-primary btn-block"
+                disabled={
+                  !choixAmoureuxA ||
+                  !choixAmoureuxB ||
+                  choixAmoureuxA === choixAmoureuxB
+                }
+                onClick={lierAmoureux}
+              >
+                Lier le couple
+              </button>
+            </div>
+          )}
+          <p className="lede" style={{ margin: "12px 0 0", fontSize: 12 }}>
+            Si l'un des deux est éliminé, l'app vous proposera d'éliminer
+            l'autre automatiquement.
+          </p>
+        </div>
+      )}
+
+      {distribue && enfantsSauvages.length > 0 && (
+        <div className="card">
+          <h2>Modèle de l'Enfant Sauvage</h2>
+          <div className="stack">
+            {enfantsSauvages.map((enfant) => {
+              const modele = joueurs.find((j) => j.id === enfant.modele_id);
+              return (
+                <div key={enfant.id}>
+                  <div className="role-name" style={{ marginBottom: 6 }}>
+                    {enfant.nom}
+                    {modele && (
+                      <span className="role-tag" style={{ marginLeft: 8 }}>
+                        modèle : {modele.nom}
+                      </span>
+                    )}
+                  </div>
+                  <select
+                    className="role-select"
+                    style={{ maxWidth: "100%" }}
+                    value={enfant.modele_id || ""}
+                    onChange={(e) => designerModele(enfant.id, e.target.value)}
+                  >
+                    <option value="">Choisir le modèle...</option>
+                    {joueurs
+                      .filter((j) => j.id !== enfant.id)
+                      .map((j) => (
+                        <option key={j.id} value={j.id}>
+                          {j.nom}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+          <p className="lede" style={{ margin: "12px 0 0", fontSize: 12 }}>
+            Si le modèle est éliminé, l'app vous proposera de transformer
+            l'Enfant Sauvage en Loup-Garou automatiquement.
+          </p>
         </div>
       )}
 
