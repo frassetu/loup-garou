@@ -281,6 +281,7 @@ export default function Joueur() {
   // Rôle révélé
   const role = ROLES_BY_ID[joueur.role];
   const campClass = role?.camp === "loups" ? "camp-loups" : "camp-village";
+  const estMaire = partie?.maire_id === joueur.id;
 
   return (
     <main className="page">
@@ -289,6 +290,12 @@ export default function Joueur() {
         <div className="camp-label">{CAMP_LABEL[role?.camp] || ""}</div>
         <div className="role-title">{role?.nom || joueur.role}</div>
         <p className="role-desc">{role?.description}</p>
+        {estMaire && (
+          <div className="maire-badge">
+            👑 Tu es aussi le Maire du village — ton vote compte double en
+            cas d'égalité.
+          </div>
+        )}
       </div>
       <button
         className="btn btn-secondary btn-block"
