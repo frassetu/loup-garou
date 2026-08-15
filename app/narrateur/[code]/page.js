@@ -20,7 +20,7 @@ export default function Narrateur() {
   const [assignationManuelle, setAssignationManuelle] = useState({});
   const [choixMaireOuvert, setChoixMaireOuvert] = useState(false);
   const [choixAmoureuxA, setChoixAmoureuxA] = useState("");
-  const [choixAmoureuxB, setChoixAmoureuxB] = useState("");
+  const [choixCupidonOuvert, setChoixCupidonOuvert] = useState(false);
 
   const lienJoueur = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -329,19 +329,23 @@ export default function Narrateur() {
     }
   }
 
-  async function lierAmoureux() {
-    if (!choixAmoureuxA || !choixAmoureuxB || choixAmoureuxA === choixAmoureuxB)
-      return;
-    await supabase
-      .from("joueurs")
-      .update({ amoureux_id: choixAmoureuxB })
-      .eq("id", choixAmoureuxA);
-    await supabase
-      .from("joueurs")
-      .update({ amoureux_id: choixAmoureuxA })
-      .eq("id", choixAmoureuxB);
+  async function lierAmoureuxAvec(idA, idB) {
+    await supabase.from("joueurs").update({ amoureux_id: idB }).eq("id", idA);
+    await supabase.from("joueurs").update({ amoureux_id: idA }).eq("id", idB);
     setChoixAmoureuxA("");
-    setChoixAmoureuxB("");
+    setChoixCupidonOuvert(false);
+  }
+
+  function toucherJoueurAmoureux(id) {
+    if (choixAmoureuxA === id) {
+      setChoixAmoureuxA("");
+      return;
+    }
+    if (!choixAmoureuxA) {
+      setChoixAmoureuxA(id);
+      return;
+    }
+    lierAmoureuxAvec(choixAmoureuxA, id);
   }
 
   async function delierAmoureux() {
@@ -610,65 +614,58 @@ export default function Narrateur() {
       )}
 
       {distribue && cupidonPresent && (
-        <div className="card">
-          <h2>Couple d'amoureux (Cupidon)</h2>
-          {paireAmoureux && paireAmoureux[1] ? (
-            <>
-              <p className="lede" style={{ margin: "0 0 12px", fontSize: 14 }}>
-                💘 {paireAmoureux[0].nom} et {paireAmoureux[1].nom}
+        <div className={paireAmoureux && paireAmoureux[1] ? "card" : "card alert-card"}>
+          <div className="role-row" style={{ border: "none", padding: 0 }}>
+            <div>
+              <div className="role-name">Couple d'amoureux</div>
+              <div className="role-camp">
+                {paireAmoureux && paireAmoureux[1]
+                  ? `💘 ${paireAmoureux[0].nom} + ${paireAmoureux[1].nom}`
+                  : "Aucun couple désigné"}
+              </div>
+            </div>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setChoixCupidonOuvert((v) => !v)}
+            >
+              {paireAmoureux ? "Changer" : "Désigner"}
+            </button>
+          </div>
+
+          {choixCupidonOuvert && (
+            <div style={{ marginTop: 14 }}>
+              <div className="chip-row">
+                {joueurs.map((j) => (
+                  <button
+                    key={j.id}
+                    className={
+                      choixAmoureuxA === j.id ? "chip chip-active" : "chip"
+                    }
+                    onClick={() => toucherJoueurAmoureux(j.id)}
+                  >
+                    {j.nom}
+                  </button>
+                ))}
+              </div>
+              <p className="lede" style={{ fontSize: 12, margin: "8px 0 0" }}>
+                {choixAmoureuxA
+                  ? "Touchez un second nom pour former le couple."
+                  : "Touchez deux noms pour les lier."}
               </p>
-              <button
-                className="btn btn-secondary btn-block"
-                onClick={delierAmoureux}
-              >
-                Modifier le couple
-              </button>
-            </>
-          ) : (
-            <div className="stack">
-              <select
-                className="role-select"
-                style={{ maxWidth: "100%" }}
-                value={choixAmoureuxA}
-                onChange={(e) => setChoixAmoureuxA(e.target.value)}
-              >
-                <option value="">Premier amoureux...</option>
-                {joueurs.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.nom}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="role-select"
-                style={{ maxWidth: "100%" }}
-                value={choixAmoureuxB}
-                onChange={(e) => setChoixAmoureuxB(e.target.value)}
-              >
-                <option value="">Second amoureux...</option>
-                {joueurs.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.nom}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="btn btn-primary btn-block"
-                disabled={
-                  !choixAmoureuxA ||
-                  !choixAmoureuxB ||
-                  choixAmoureuxA === choixAmoureuxB
-                }
-                onClick={lierAmoureux}
-              >
-                Lier le couple
-              </button>
+              {paireAmoureux && paireAmoureux[1] && (
+                <button
+                  className="btn btn-secondary btn-block"
+                  style={{ marginTop: 10 }}
+                  onClick={() => {
+                    delierAmoureux();
+                    setChoixCupidonOuvert(false);
+                  }}
+                >
+                  Retirer le couple
+                </button>
+              )}
             </div>
           )}
-          <p className="lede" style={{ margin: "12px 0 0", fontSize: 12 }}>
-            Si l'un des deux est éliminé, l'app vous proposera d'éliminer
-            l'autre automatiquement.
-          </p>
         </div>
       )}
 
