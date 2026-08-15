@@ -16,6 +16,9 @@ export default function Narrateur() {
   const [distribution, setDistribution] = useState(false);
   const [erreur, setErreur] = useState("");
   const [copie, setCopie] = useState(false);
+  const [modeDistribution, setModeDistribution] = useState("auto"); // 'auto' | 'manuel'
+  const [assignationManuelle, setAssignationManuelle] = useState({});
+  const [choixMaireOuvert, setChoixMaireOuvert] = useState(false);
 
   const lienJoueur = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -116,7 +119,7 @@ export default function Narrateur() {
     0
   );
   const joueursVivants = joueurs.length;
-  const peutDistribuer =
+  const peutDistribuerAuto =
     joueursVivants > 0 && totalRolesChoisis <= joueursVivants;
 
   async function majRole(roleId, delta) {
@@ -132,7 +135,7 @@ export default function Narrateur() {
       .eq("id", partie.id);
   }
 
-  async function distribuerRoles() {
+  async function distribuerAuto() {
     setErreur("");
     if (joueursVivants === 0) {
       setErreur("Aucun joueur n'a encore rejoint la partie.");
@@ -173,11 +176,49 @@ export default function Narrateur() {
     setDistribution(false);
   }
 
+  async function distribuerManuel() {
+    setErreur("");
+    if (joueursVivants === 0) {
+      setErreur("Aucun joueur n'a encore rejoint la partie.");
+      return;
+    }
+
+    setDistribution(true);
+
+    const mises_a_jour = joueurs.map((joueur) =>
+      supabase
+        .from("joueurs")
+        .update({ role: assignationManuelle[joueur.id] || "villageois" })
+        .eq("id", joueur.id)
+    );
+
+    await Promise.all(mises_a_jour);
+    await supabase
+      .from("parties")
+      .update({ statut: "distribue" })
+      .eq("id", partie.id);
+
+    setDistribution(false);
+  }
+
+  function changerAssignation(joueurId, roleId) {
+    setAssignationManuelle((prev) => ({ ...prev, [joueurId]: roleId }));
+  }
+
   async function eliminerJoueur(joueurId) {
     await supabase
       .from("joueurs")
       .update({ vivant: false })
       .eq("id", joueurId);
+
+    // Si le joueur éliminé était le maire, on retire le titre : le
+    // narrateur devra désigner un successeur (bandeau ci-dessous).
+    if (partie?.maire_id === joueurId) {
+      await supabase
+        .from("parties")
+        .update({ maire_id: null })
+        .eq("id", partie.id);
+    }
   }
 
   async function retablirJoueur(joueurId) {
@@ -191,10 +232,33 @@ export default function Narrateur() {
     await supabase.from("joueurs").delete().eq("id", joueurId);
   }
 
+  async function designerMaire(joueurId) {
+    await supabase
+      .from("parties")
+      .update({ maire_id: joueurId })
+      .eq("id", partie.id);
+    setChoixMaireOuvert(false);
+  }
+
+  async function tirerMaireAuSort() {
+    const vivants = joueurs.filter((j) => j.vivant);
+    if (vivants.length === 0) return;
+    const elu = vivants[Math.floor(Math.random() * vivants.length)];
+    await designerMaire(elu.id);
+  }
+
+  async function retirerMaire() {
+    await supabase
+      .from("parties")
+      .update({ maire_id: null })
+      .eq("id", partie.id);
+    setChoixMaireOuvert(false);
+  }
+
   async function nouvellePartie() {
     if (
       !window.confirm(
-        "Remettre tous les joueurs en jeu pour une nouvelle manche ? Les rôles seront effacés."
+        "Remettre tous les joueurs en jeu pour une nouvelle manche ? Les rôles et le maire seront effacés."
       )
     )
       return;
@@ -206,8 +270,10 @@ export default function Narrateur() {
 
     await supabase
       .from("parties")
-      .update({ statut: "lobby" })
+      .update({ statut: "lobby", maire_id: null })
       .eq("id", partie.id);
+
+    setAssignationManuelle({});
   }
 
   function copierLien() {
@@ -239,6 +305,7 @@ export default function Narrateur() {
   const distribue = partie.statut === "distribue";
   const vivants = joueurs.filter((j) => j.vivant);
   const morts = joueurs.filter((j) => !j.vivant);
+  const maire = joueurs.find((j) => j.id === partie.maire_id);
 
   return (
     <main className="page">
@@ -257,34 +324,122 @@ export default function Narrateur() {
 
       {!distribue && (
         <div className="card">
-          <h2>Choix des rôles</h2>
-          <div className="stack">
-            {ROLES.filter((r) => r.id !== "villageois").map((role) => (
-              <div className="role-row" key={role.id}>
-                <div>
-                  <div className="role-name">{role.nom}</div>
-                  <div className="role-camp">
-                    {role.camp === "loups" ? "Camp des loups" : "Camp du village"}
-                  </div>
-                </div>
-                <div className="stepper">
-                  <button
-                    onClick={() => majRole(role.id, -1)}
-                    disabled={(rolesConfig[role.id] || 0) === 0}
-                  >
-                    −
-                  </button>
-                  <span className="count">{rolesConfig[role.id] || 0}</span>
-                  <button onClick={() => majRole(role.id, 1)}>+</button>
-                </div>
-              </div>
-            ))}
+          <h2>Distribution des rôles</h2>
+          <div className="mode-switch">
+            <button
+              className={modeDistribution === "auto" ? "mode-btn active" : "mode-btn"}
+              onClick={() => setModeDistribution("auto")}
+            >
+              Aléatoire
+            </button>
+            <button
+              className={modeDistribution === "manuel" ? "mode-btn active" : "mode-btn"}
+              onClick={() => setModeDistribution("manuel")}
+            >
+              Manuelle
+            </button>
           </div>
-          <p className="lede" style={{ marginTop: 16, marginBottom: 0, fontSize: 13 }}>
-            Les joueurs sans rôle spécial recevront automatiquement le rôle
-            Villageois. {totalRolesChoisis} rôle(s) choisi(s) pour{" "}
-            {joueursVivants} joueur(s) inscrit(s).
-          </p>
+
+          {modeDistribution === "auto" ? (
+            <>
+              <div className="stack" style={{ marginTop: 16 }}>
+                {ROLES.filter((r) => r.id !== "villageois").map((role) => (
+                  <div className="role-row" key={role.id}>
+                    <div>
+                      <div className="role-name">{role.nom}</div>
+                      <div className="role-camp">
+                        {role.camp === "loups" ? "Camp des loups" : "Camp du village"}
+                      </div>
+                    </div>
+                    <div className="stepper">
+                      <button
+                        onClick={() => majRole(role.id, -1)}
+                        disabled={(rolesConfig[role.id] || 0) === 0}
+                      >
+                        −
+                      </button>
+                      <span className="count">{rolesConfig[role.id] || 0}</span>
+                      <button onClick={() => majRole(role.id, 1)}>+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="lede" style={{ marginTop: 16, marginBottom: 0, fontSize: 13 }}>
+                Les joueurs sans rôle spécial recevront automatiquement le rôle
+                Villageois. {totalRolesChoisis} rôle(s) choisi(s) pour{" "}
+                {joueursVivants} joueur(s) inscrit(s).
+              </p>
+            </>
+          ) : (
+            <div className="stack" style={{ marginTop: 16 }}>
+              {joueurs.length === 0 && (
+                <p className="lede" style={{ margin: 0 }}>
+                  En attente de joueurs avant de pouvoir leur attribuer un rôle.
+                </p>
+              )}
+              {joueurs.map((j) => (
+                <div className="role-row" key={j.id}>
+                  <div className="role-name">{j.nom}</div>
+                  <select
+                    className="role-select"
+                    value={assignationManuelle[j.id] || "villageois"}
+                    onChange={(e) => changerAssignation(j.id, e.target.value)}
+                  >
+                    {ROLES.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.nom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {distribue && (
+        <div className={maire ? "card" : "card alert-card"}>
+          <div className="role-row" style={{ border: "none", padding: 0 }}>
+            <div>
+              <div className="role-name">Maire du village</div>
+              <div className="role-camp">
+                {maire ? `👑 ${maire.nom}` : "Aucun maire désigné"}
+              </div>
+            </div>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setChoixMaireOuvert((v) => !v)}
+            >
+              {maire ? "Changer" : "Désigner"}
+            </button>
+          </div>
+
+          {choixMaireOuvert && (
+            <div className="stack" style={{ marginTop: 14 }}>
+              <button className="btn btn-primary btn-block" onClick={tirerMaireAuSort}>
+                Tirer au sort parmi les joueurs vivants
+              </button>
+              <div className="player-list" style={{ marginTop: 4 }}>
+                {vivants.map((j) => (
+                  <div className="player-row" key={j.id}>
+                    <div className="player-name">
+                      <span className="dot" />
+                      {j.nom}
+                    </div>
+                    <button className="btn-danger" onClick={() => designerMaire(j.id)}>
+                      Choisir
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {maire && (
+                <button className="btn btn-secondary btn-block" onClick={retirerMaire}>
+                  Retirer le titre de maire
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -305,6 +460,7 @@ export default function Narrateur() {
                 <div className="player-name">
                   <span className="dot" />
                   {j.nom}
+                  {partie.maire_id === j.id && <span title="Maire">👑</span>}
                   {distribue && j.role && (
                     <span className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role}
@@ -316,6 +472,11 @@ export default function Narrateur() {
                     <button
                       className="btn-danger"
                       onClick={() => eliminerJoueur(j.id)}
+                      title={
+                        partie.maire_id === j.id
+                          ? "Ce joueur est maire : il perdra ce titre"
+                          : undefined
+                      }
                     >
                       Éliminer
                     </button>
@@ -356,8 +517,12 @@ export default function Narrateur() {
       {!distribue ? (
         <button
           className="btn btn-primary btn-block"
-          onClick={distribuerRoles}
-          disabled={!peutDistribuer || distribution}
+          onClick={modeDistribution === "auto" ? distribuerAuto : distribuerManuel}
+          disabled={
+            distribution ||
+            joueursVivants === 0 ||
+            (modeDistribution === "auto" && !peutDistribuerAuto)
+          }
         >
           {distribution ? "Distribution..." : "Distribuer les rôles"}
         </button>
