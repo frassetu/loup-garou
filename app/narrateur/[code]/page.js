@@ -150,24 +150,75 @@ export default function Narrateur() {
 
     setDistribution(true);
 
+    // On revérifie la liste de joueurs directement en base juste avant
+    // d'envoyer les rôles, pour éviter qu'un joueur ayant rejoint entre
+    // le dernier rafraîchissement et le clic ne soit oublié.
+    const { data: joueursFrais, error: fetchErr } = await supabase
+      .from("joueurs")
+      .select("*")
+      .eq("partie_id", partie.id)
+      .order("created_at", { ascending: true });
+
+    if (fetchErr || !joueursFrais) {
+      setErreur("Impossible de récupérer la liste des joueurs, réessayez.");
+      setDistribution(false);
+      return;
+    }
+
+    if (totalRolesChoisis > joueursFrais.length) {
+      setErreur(
+        `Vous avez sélectionné ${totalRolesChoisis} rôles pour seulement ${joueursFrais.length} joueur(s) réellement inscrit(s). Ajustez et réessayez.`
+      );
+      setDistribution(false);
+      return;
+    }
+
     // Construit la pile de rôles : les rôles choisis + des Villageois
     // pour compléter jusqu'au nombre de joueurs.
-    const pile = [];
+    const pileBase = [];
     for (const [roleId, count] of Object.entries(rolesConfig)) {
-      for (let i = 0; i < count; i++) pile.push(roleId);
+      for (let i = 0; i < count; i++) pileBase.push(roleId);
     }
-    while (pile.length < joueursVivants) pile.push("villageois");
+    while (pileBase.length < joueursFrais.length) pileBase.push("villageois");
 
-    const pileMelangee = melanger(pile);
+    // On tire plusieurs mélanges et on garde celui qui redonne le moins
+    // souvent le même rôle qu'à la manche précédente à un même joueur —
+    // ça évite l'impression que "c'est toujours la même personne".
+    let meilleurePile = melanger(pileBase);
+    let meilleurScore = joueursFrais.filter(
+      (j, i) => j.dernier_role && j.dernier_role === meilleurePile[i]
+    ).length;
 
-    const mises_a_jour = joueurs.map((joueur, index) =>
-      supabase
-        .from("joueurs")
-        .update({ role: pileMelangee[index] })
-        .eq("id", joueur.id)
+    for (let tentative = 0; tentative < 40 && meilleurScore > 0; tentative++) {
+      const essai = melanger(pileBase);
+      const score = joueursFrais.filter(
+        (j, i) => j.dernier_role && j.dernier_role === essai[i]
+      ).length;
+      if (score < meilleurScore) {
+        meilleurScore = score;
+        meilleurePile = essai;
+      }
+    }
+
+    const resultats = await Promise.all(
+      joueursFrais.map((joueur, index) =>
+        supabase
+          .from("joueurs")
+          .update({ role: meilleurePile[index] })
+          .eq("id", joueur.id)
+          .select()
+      )
     );
 
-    await Promise.all(mises_a_jour);
+    const echecs = resultats.filter((r) => r.error || !r.data?.length);
+    if (echecs.length > 0) {
+      setErreur(
+        `${echecs.length} joueur(s) n'ont pas reçu leur rôle correctement (problème réseau). Cliquez à nouveau sur "Distribuer" pour réessayer.`
+      );
+      setDistribution(false);
+      return;
+    }
+
     await supabase
       .from("parties")
       .update({ statut: "distribue" })
@@ -185,14 +236,37 @@ export default function Narrateur() {
 
     setDistribution(true);
 
-    const mises_a_jour = joueurs.map((joueur) =>
-      supabase
-        .from("joueurs")
-        .update({ role: assignationManuelle[joueur.id] || "villageois" })
-        .eq("id", joueur.id)
+    const { data: joueursFrais, error: fetchErr } = await supabase
+      .from("joueurs")
+      .select("*")
+      .eq("partie_id", partie.id)
+      .order("created_at", { ascending: true });
+
+    if (fetchErr || !joueursFrais) {
+      setErreur("Impossible de récupérer la liste des joueurs, réessayez.");
+      setDistribution(false);
+      return;
+    }
+
+    const resultats = await Promise.all(
+      joueursFrais.map((joueur) =>
+        supabase
+          .from("joueurs")
+          .update({ role: assignationManuelle[joueur.id] || "villageois" })
+          .eq("id", joueur.id)
+          .select()
+      )
     );
 
-    await Promise.all(mises_a_jour);
+    const echecs = resultats.filter((r) => r.error || !r.data?.length);
+    if (echecs.length > 0) {
+      setErreur(
+        `${echecs.length} joueur(s) n'ont pas reçu leur rôle correctement (problème réseau). Cliquez à nouveau sur "Distribuer" pour réessayer.`
+      );
+      setDistribution(false);
+      return;
+    }
+
     await supabase
       .from("parties")
       .update({ statut: "distribue" })
@@ -263,10 +337,21 @@ export default function Narrateur() {
     )
       return;
 
-    await supabase
+    // On garde une trace du rôle de cette manche pour éviter de le
+    // redonner directement à la même personne à la prochaine distribution.
+    const { data: joueursActuels } = await supabase
       .from("joueurs")
-      .update({ role: null, vivant: true })
+      .select("id, role")
       .eq("partie_id", partie.id);
+
+    await Promise.all(
+      (joueursActuels || []).map((j) =>
+        supabase
+          .from("joueurs")
+          .update({ dernier_role: j.role, role: null, vivant: true })
+          .eq("id", j.id)
+      )
+    );
 
     await supabase
       .from("parties")
@@ -348,7 +433,11 @@ export default function Narrateur() {
                     <div>
                       <div className="role-name">{role.nom}</div>
                       <div className="role-camp">
-                        {role.camp === "loups" ? "Camp des loups" : "Camp du village"}
+                        {role.camp === "loups"
+                          ? "Camp des loups"
+                          : role.camp === "mixte"
+                          ? "Camp au choix"
+                          : "Camp du village"}
                       </div>
                     </div>
                     <div className="stepper">
