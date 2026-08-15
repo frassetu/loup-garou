@@ -1,0 +1,238 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "../../../lib/supabaseClient";
+import { ROLES_BY_ID, CAMP_LABEL } from "../../../lib/roles";
+import {
+  getOrCreateSessionId,
+  getStoredPlayerId,
+  setStoredPlayerId,
+  clearStoredPlayer,
+} from "../../../lib/utils";
+
+export default function Joueur() {
+  const { code } = useParams();
+  const [partie, setPartie] = useState(null);
+  const [joueur, setJoueur] = useState(null);
+  const [nom, setNom] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [rejoint, setRejoint] = useState(false);
+  const [erreur, setErreur] = useState("");
+
+  const chargerPartie = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("parties")
+      .select("*")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (error || !data) {
+      setErreur("Cette partie n'existe pas ou plus.");
+      setLoading(false);
+      return null;
+    }
+    setPartie(data);
+    return data;
+  }, [code]);
+
+  useEffect(() => {
+    (async () => {
+      const partieData = await chargerPartie();
+      if (!partieData) return;
+
+      const joueurId = getStoredPlayerId(code);
+      if (joueurId) {
+        const { data } = await supabase
+          .from("joueurs")
+          .select("*")
+          .eq("id", joueurId)
+          .maybeSingle();
+        if (data) {
+          setJoueur(data);
+          setRejoint(true);
+        } else {
+          clearStoredPlayer(code);
+        }
+      }
+      setLoading(false);
+    })();
+  }, [code, chargerPartie]);
+
+  // Abonnement temps réel à sa propre ligne joueur + au statut de la partie
+  useEffect(() => {
+    if (!joueur?.id || !partie?.id) return;
+
+    const channel = supabase
+      .channel(`joueur-${joueur.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "joueurs",
+          filter: `id=eq.${joueur.id}`,
+        },
+        (payload) => setJoueur(payload.new)
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "joueurs",
+          filter: `id=eq.${joueur.id}`,
+        },
+        () => {
+          clearStoredPlayer(code);
+          setJoueur(null);
+          setRejoint(false);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "parties",
+          filter: `id=eq.${partie.id}`,
+        },
+        (payload) => setPartie(payload.new)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [joueur?.id, partie?.id, code]);
+
+  async function rejoindrePartie(e) {
+    e.preventDefault();
+    const nomNettoye = nom.trim();
+    if (!nomNettoye || !partie) return;
+
+    setErreur("");
+    const sessionId = getOrCreateSessionId(code);
+
+    const { data, error } = await supabase
+      .from("joueurs")
+      .insert({
+        partie_id: partie.id,
+        session_id: sessionId,
+        nom: nomNettoye,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      setErreur("Impossible de rejoindre la partie. Réessayez.");
+      return;
+    }
+
+    setStoredPlayerId(code, data.id);
+    setJoueur(data);
+    setRejoint(true);
+  }
+
+  if (loading) {
+    return (
+      <main className="page">
+        <p className="lede">Chargement...</p>
+      </main>
+    );
+  }
+
+  if (erreur && !partie) {
+    return (
+      <main className="page">
+        <Link href="/" className="back-link">
+          ← Accueil
+        </Link>
+        <h1>Introuvable</h1>
+        <p className="lede">{erreur}</p>
+      </main>
+    );
+  }
+
+  // Écran de saisie du nom
+  if (!rejoint) {
+    return (
+      <main className="page">
+        <div className="eyebrow">Partie {code}</div>
+        <h1>Quel est ton nom ?</h1>
+        <p className="lede">
+          Il sera visible par le narrateur et les autres joueurs.
+        </p>
+        <form className="stack" onSubmit={rejoindrePartie}>
+          <input
+            type="text"
+            placeholder="Ton prénom"
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            maxLength={24}
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
+            disabled={!nom.trim()}
+          >
+            Rejoindre la partie
+          </button>
+          {erreur && <p className="error-msg">{erreur}</p>}
+        </form>
+      </main>
+    );
+  }
+
+  // Joueur éliminé
+  if (joueur && joueur.vivant === false) {
+    return (
+      <main className="page">
+        <div className="eliminated-screen">
+          <div className="role-title">Tu as été éliminé</div>
+          <p className="lede">
+            Ton rôle était : {ROLES_BY_ID[joueur.role]?.nom || "inconnu"}.
+            <br />
+            Reste discret et suis la suite de la partie.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // En attente de la distribution
+  if (!joueur?.role) {
+    return (
+      <main className="page">
+        <div className="eyebrow">Partie {code}</div>
+        <h1>C'est bon, {joueur?.nom} !</h1>
+        <p className="lede">
+          Tu es dans la partie. Le narrateur va bientôt distribuer les
+          rôles — garde cette page ouverte.
+        </p>
+        <div className="waiting-pulse">
+          <span />
+          <span />
+          <span />
+        </div>
+      </main>
+    );
+  }
+
+  // Rôle révélé
+  const role = ROLES_BY_ID[joueur.role];
+  const campClass = role?.camp === "loups" ? "camp-loups" : "camp-village";
+
+  return (
+    <main className="page">
+      <div className="eyebrow">Partie {code}</div>
+      <div className={`role-reveal ${campClass}`}>
+        <div className="camp-label">{CAMP_LABEL[role?.camp] || ""}</div>
+        <div className="role-title">{role?.nom || joueur.role}</div>
+        <p className="role-desc">{role?.description}</p>
+      </div>
+    </main>
+  );
+}
