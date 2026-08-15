@@ -280,7 +280,12 @@ export default function Joueur() {
 
   // Rôle révélé
   const role = ROLES_BY_ID[joueur.role];
-  const campClass = role?.camp === "loups" ? "camp-loups" : "camp-village";
+  const campClass =
+    role?.camp === "loups"
+      ? "camp-loups"
+      : role?.camp === "mixte"
+      ? "camp-mixte"
+      : "camp-village";
   const estMaire = partie?.maire_id === joueur.id;
 
   return (
