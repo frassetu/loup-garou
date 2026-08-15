@@ -556,3 +556,28 @@ input[type="text"].code-input {
   line-height: 1.5;
   max-width: 320px;
 }
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--moon);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.chip.chip-active {
+  background: var(--lanterne);
+  border-color: var(--lanterne);
+  color: #211407;
+  font-weight: 700;
+}
