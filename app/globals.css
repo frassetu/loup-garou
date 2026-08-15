@@ -402,6 +402,13 @@ input[type="text"].code-input {
   box-shadow: 0 0 0 1px rgba(219, 166, 74, 0.35), 0 20px 50px -20px var(--lanterne-glow);
 }
 
+.role-reveal.camp-mixte {
+  background: linear-gradient(135deg, var(--loup-glow), transparent 45%, var(--lanterne-glow)),
+    var(--bg-panel);
+  box-shadow: 0 0 0 1px var(--border), 0 20px 50px -20px var(--loup-glow),
+    0 20px 50px -20px var(--lanterne-glow);
+}
+
 .role-reveal .camp-label {
   font-family: var(--font-mono);
   font-size: 11px;
