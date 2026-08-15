@@ -21,6 +21,7 @@ export default function Narrateur() {
   const [choixMaireOuvert, setChoixMaireOuvert] = useState(false);
   const [choixAmoureuxA, setChoixAmoureuxA] = useState("");
   const [choixCupidonOuvert, setChoixCupidonOuvert] = useState(false);
+  const [enfantOuvertId, setEnfantOuvertId] = useState(null);
 
   const lienJoueur = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -362,6 +363,7 @@ export default function Narrateur() {
       .from("joueurs")
       .update({ modele_id: modeleId || null })
       .eq("id", enfantId);
+    setEnfantOuvertId(null);
   }
 
   async function retablirJoueur(joueurId) {
@@ -677,29 +679,43 @@ export default function Narrateur() {
               const modele = joueurs.find((j) => j.id === enfant.modele_id);
               return (
                 <div key={enfant.id}>
-                  <div className="role-name" style={{ marginBottom: 6 }}>
-                    {enfant.nom}
-                    {modele && (
-                      <span className="role-tag" style={{ marginLeft: 8 }}>
-                        modèle : {modele.nom}
-                      </span>
-                    )}
+                  <div className="role-row" style={{ border: "none", padding: 0 }}>
+                    <div>
+                      <div className="role-name">{enfant.nom}</div>
+                      <div className="role-camp">
+                        {modele ? `Modèle : ${modele.nom}` : "Aucun modèle désigné"}
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        setEnfantOuvertId((v) =>
+                          v === enfant.id ? null : enfant.id
+                        )
+                      }
+                    >
+                      {modele ? "Changer" : "Désigner"}
+                    </button>
                   </div>
-                  <select
-                    className="role-select"
-                    style={{ maxWidth: "100%" }}
-                    value={enfant.modele_id || ""}
-                    onChange={(e) => designerModele(enfant.id, e.target.value)}
-                  >
-                    <option value="">Choisir le modèle...</option>
-                    {joueurs
-                      .filter((j) => j.id !== enfant.id)
-                      .map((j) => (
-                        <option key={j.id} value={j.id}>
-                          {j.nom}
-                        </option>
-                      ))}
-                  </select>
+                  {enfantOuvertId === enfant.id && (
+                    <div className="chip-row" style={{ marginTop: 10 }}>
+                      {joueurs
+                        .filter((j) => j.id !== enfant.id)
+                        .map((j) => (
+                          <button
+                            key={j.id}
+                            className={
+                              enfant.modele_id === j.id
+                                ? "chip chip-active"
+                                : "chip"
+                            }
+                            onClick={() => designerModele(enfant.id, j.id)}
+                          >
+                            {j.nom}
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -729,6 +745,7 @@ export default function Narrateur() {
                   <span className="dot" />
                   {j.nom}
                   {partie.maire_id === j.id && <span title="Maire">👑</span>}
+                  {j.amoureux_id && <span title="Amoureux">🏹</span>}
                   {distribue && j.role && (
                     <span className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role}
@@ -764,6 +781,7 @@ export default function Narrateur() {
               <div className="player-row eliminated" key={j.id}>
                 <div className="player-name">
                   {j.nom}
+                  {j.amoureux_id && <span title="Amoureux">🏹</span>}
                   {j.role && (
                     <span className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
