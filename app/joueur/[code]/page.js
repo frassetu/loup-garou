@@ -107,6 +107,46 @@ export default function Joueur() {
     };
   }, [joueur?.id, partie?.id, code]);
 
+  // Si iOS a mis l'app en pause (retour à l'écran d'accueil, changement
+  // d'app) pendant que le narrateur distribuait les rôles, la connexion
+  // temps réel peut avoir raté l'événement. On revérifie au retour.
+  useEffect(() => {
+    async function surRetourApp() {
+      if (document.visibilityState !== "visible") return;
+      supabase.realtime.connect();
+
+      const { data: partieFraiche } = await supabase
+        .from("parties")
+        .select("*")
+        .eq("code", code)
+        .maybeSingle();
+      if (partieFraiche) setPartie(partieFraiche);
+
+      if (joueur?.id) {
+        const { data: joueurFrais } = await supabase
+          .from("joueurs")
+          .select("*")
+          .eq("id", joueur.id)
+          .maybeSingle();
+        if (joueurFrais) {
+          setJoueur(joueurFrais);
+        } else {
+          clearStoredPlayer(code);
+          setJoueur(null);
+          setRejoint(false);
+        }
+      }
+    }
+    document.addEventListener("visibilitychange", surRetourApp);
+    window.addEventListener("focus", surRetourApp);
+    window.addEventListener("pageshow", surRetourApp);
+    return () => {
+      document.removeEventListener("visibilitychange", surRetourApp);
+      window.removeEventListener("focus", surRetourApp);
+      window.removeEventListener("pageshow", surRetourApp);
+    };
+  }, [code, joueur?.id]);
+
   async function rejoindrePartie(e) {
     e.preventDefault();
     const nomNettoye = nom.trim();
@@ -133,6 +173,16 @@ export default function Joueur() {
     setStoredPlayerId(code, data.id);
     setJoueur(data);
     setRejoint(true);
+  }
+
+  async function changerDeJoueur() {
+    if (joueur?.id) {
+      await supabase.from("joueurs").delete().eq("id", joueur.id);
+    }
+    clearStoredPlayer(code);
+    setJoueur(null);
+    setRejoint(false);
+    setNom("");
   }
 
   if (loading) {
@@ -217,6 +267,13 @@ export default function Joueur() {
           <span />
           <span />
         </div>
+        <button
+          className="btn btn-secondary btn-block"
+          style={{ marginTop: 32 }}
+          onClick={changerDeJoueur}
+        >
+          Ce n'est pas moi / changer de joueur
+        </button>
       </main>
     );
   }
@@ -233,6 +290,13 @@ export default function Joueur() {
         <div className="role-title">{role?.nom || joueur.role}</div>
         <p className="role-desc">{role?.description}</p>
       </div>
+      <button
+        className="btn btn-secondary btn-block"
+        style={{ marginTop: 20 }}
+        onClick={changerDeJoueur}
+      >
+        Ce n'est pas moi / changer de joueur
+      </button>
     </main>
   );
 }
