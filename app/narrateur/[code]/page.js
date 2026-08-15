@@ -588,25 +588,33 @@ export default function Narrateur() {
           </div>
 
           {choixMaireOuvert && (
-            <div className="stack" style={{ marginTop: 14 }}>
-              <button className="btn btn-primary btn-block" onClick={tirerMaireAuSort}>
+            <div style={{ marginTop: 14 }}>
+              <button
+                className="btn btn-primary btn-block"
+                onClick={tirerMaireAuSort}
+                style={{ marginBottom: 10 }}
+              >
                 Tirer au sort parmi les joueurs vivants
               </button>
-              <div className="player-list" style={{ marginTop: 4 }}>
+              <div className="chip-row">
                 {vivants.map((j) => (
-                  <div className="player-row" key={j.id}>
-                    <div className="player-name">
-                      <span className="dot" />
-                      {j.nom}
-                    </div>
-                    <button className="btn-danger" onClick={() => designerMaire(j.id)}>
-                      Choisir
-                    </button>
-                  </div>
+                  <button
+                    key={j.id}
+                    className={
+                      partie.maire_id === j.id ? "chip chip-active" : "chip"
+                    }
+                    onClick={() => designerMaire(j.id)}
+                  >
+                    {j.nom}
+                  </button>
                 ))}
               </div>
               {maire && (
-                <button className="btn btn-secondary btn-block" onClick={retirerMaire}>
+                <button
+                  className="btn btn-secondary btn-block"
+                  style={{ marginTop: 10 }}
+                  onClick={retirerMaire}
+                >
                   Retirer le titre de maire
                 </button>
               )}
