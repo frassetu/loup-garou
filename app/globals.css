@@ -1,18 +1,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap");
 
 :root {
-  --bg: #0e1120;
-  --bg-panel: #171b2e;
-  --bg-panel-raised: #1e2338;
-  --border: #2a2f47;
-  --moon: #efece0;
-  --muted: #9a97ad;
-  --loup: #b0324a;
-  --loup-glow: rgba(176, 50, 74, 0.35);
-  --lanterne: #dba64a;
-  --lanterne-glow: rgba(219, 166, 74, 0.3);
+  --bg: #120c0c;
+  --bg-panel: #1d1313;
+  --bg-panel-raised: #261818;
+  --border: #3d2424;
+  --moon: #efe4d1;
+  --muted: #a8968a;
+  --loup: #ac2545;
+  --loup-glow: rgba(172, 37, 69, 0.35);
+  --lanterne: #d1a25a;
+  --lanterne-glow: rgba(209, 162, 90, 0.3);
   --foret: #37503f;
-  --danger: #b0324a;
+  --danger: #ac2545;
   --radius: 14px;
   --font-display: "Fraunces", serif;
   --font-body: "Inter", sans-serif;
@@ -30,7 +30,7 @@ body {
 }
 
 body {
-  background: radial-gradient(ellipse at top, #161a2c 0%, var(--bg) 55%);
+  background: radial-gradient(ellipse at top, #1c1010 0%, var(--bg) 55%);
   color: var(--moon);
   font-family: var(--font-body);
   min-height: 100vh;
