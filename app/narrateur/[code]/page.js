@@ -90,6 +90,27 @@ export default function Narrateur() {
     };
   }, [partie?.id, chargerDonnees]);
 
+  // Quand l'app iPhone revient au premier plan (retour depuis l'écran
+  // d'accueil ou changement d'app), la connexion temps réel peut avoir été
+  // coupée par iOS. On force un rechargement des données à ce moment-là,
+  // et on s'assure que la connexion Realtime est bien active.
+  useEffect(() => {
+    function surRetourApp() {
+      if (document.visibilityState === "visible") {
+        chargerDonnees();
+        supabase.realtime.connect();
+      }
+    }
+    document.addEventListener("visibilitychange", surRetourApp);
+    window.addEventListener("focus", surRetourApp);
+    window.addEventListener("pageshow", surRetourApp);
+    return () => {
+      document.removeEventListener("visibilitychange", surRetourApp);
+      window.removeEventListener("focus", surRetourApp);
+      window.removeEventListener("pageshow", surRetourApp);
+    };
+  }, [chargerDonnees]);
+
   const totalRolesChoisis = Object.values(rolesConfig).reduce(
     (a, b) => a + (b || 0),
     0
