@@ -4,8 +4,8 @@
   "description": "Distribution des rôles pour vos parties de Loup-Garou",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e1120",
-  "theme_color": "#0e1120",
+  "background_color": "#120c0c",
+  "theme_color": "#120c0c",
   "icons": [
     {
       "src": "/icons/icon-192.png",
