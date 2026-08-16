@@ -20,6 +20,7 @@ export default function Joueur() {
   const [loading, setLoading] = useState(true);
   const [rejoint, setRejoint] = useState(false);
   const [erreur, setErreur] = useState("");
+  const [amoureuxNom, setAmoureuxNom] = useState(null);
 
   const chargerPartie = useCallback(async () => {
     const { data, error } = await supabase
@@ -147,6 +148,23 @@ export default function Joueur() {
     };
   }, [code, joueur?.id]);
 
+  // Récupère le prénom de l'amoureux désigné par Cupidon, pour l'afficher
+  // sur la carte de rôle du joueur concerné.
+  useEffect(() => {
+    if (!joueur?.amoureux_id) {
+      setAmoureuxNom(null);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("joueurs")
+        .select("nom")
+        .eq("id", joueur.amoureux_id)
+        .maybeSingle();
+      setAmoureuxNom(data?.nom || null);
+    })();
+  }, [joueur?.amoureux_id]);
+
   async function rejoindrePartie(e) {
     e.preventDefault();
     const nomNettoye = nom.trim();
@@ -220,14 +238,14 @@ export default function Joueur() {
             placeholder="Ton prénom"
             value={nom}
             onChange={(e) => setNom(e.target.value)}
-            maxLength={10}
+            maxLength={12}
             autoFocus
           />
           <p
             className="lede"
             style={{ margin: "-4px 0 0", fontSize: 12, textAlign: "right" }}
           >
-            {nom.length}/10
+            {nom.length}/12
           </p>
           <button
             type="submit"
@@ -305,6 +323,12 @@ export default function Joueur() {
           <div className="maire-badge">
             👑 Tu es aussi le Maire du village — ton vote compte double en
             cas d'égalité.
+          </div>
+        )}
+        {amoureuxNom && (
+          <div className="amoureux-badge">
+            💘 Tu es amoureux(se) de {amoureuxNom}. Si l'un de vous meurt,
+            l'autre meurt aussi de chagrin.
           </div>
         )}
       </div>
