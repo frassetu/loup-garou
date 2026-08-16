@@ -185,6 +185,7 @@ input[type="text"].code-input {
   border-radius: 8px;
   box-shadow: 0 4px 14px -6px var(--loup-glow);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-danger:hover {
@@ -350,9 +351,10 @@ input[type="text"].code-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  row-gap: 10px;
-  column-gap: 10px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg-panel-raised);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -368,9 +370,10 @@ input[type="text"].code-input {
   font-size: 15px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-  min-width: 0;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .player-name .dot {
