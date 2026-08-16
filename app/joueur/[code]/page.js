@@ -220,14 +220,14 @@ export default function Joueur() {
             placeholder="Ton prénom"
             value={nom}
             onChange={(e) => setNom(e.target.value)}
-            maxLength={12}
+            maxLength={10}
             autoFocus
           />
           <p
             className="lede"
             style={{ margin: "-4px 0 0", fontSize: 12, textAlign: "right" }}
           >
-            {nom.length}/12
+            {nom.length}/10
           </p>
           <button
             type="submit"
