@@ -775,7 +775,14 @@ export default function Narrateur() {
                     </span>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexBasis: "100%",
+                    justifyContent: "flex-end",
+                  }}
+                >
                   {distribue && (
                     <button
                       className="btn-danger"
@@ -817,12 +824,14 @@ export default function Narrateur() {
                     </span>
                   )}
                 </div>
-                <button
-                  className="btn-danger"
-                  onClick={() => retablirJoueur(j.id)}
-                >
-                  Rétablir
-                </button>
+                <div style={{ flexBasis: "100%", display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => retablirJoueur(j.id)}
+                  >
+                    Rétablir
+                  </button>
+                </div>
               </div>
             ))}
           </div>
