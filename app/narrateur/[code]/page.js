@@ -744,7 +744,7 @@ export default function Narrateur() {
         </div>
       )}
 
-      <div className="card">
+      <div className="card card-compact">
         <div className="summary-bar">
           <span>Joueurs inscrits</span>
           <span>{joueurs.length}</span>
@@ -761,13 +761,13 @@ export default function Narrateur() {
                 <div className="player-name">
                   <span className="dot" />
                   {j.nom}
-                  {partie.maire_id === j.id && <span title="Maire">👑</span>}
-                  {j.amoureux_id && <span title="Amoureux">🏹</span>}
+                  {partie.maire_id === j.id && <span className="badge-icon" title="Maire">👑</span>}
+                  {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
                   {peresIds.includes(j.id) && (
-                    <span title="Père désigné">👨🏻</span>
+                    <span className="badge-icon" title="Père désigné">👨🏻</span>
                   )}
                   {j.role === "enfant-sauvage" && (
-                    <span title="Enfant Sauvage">👶🏻</span>
+                    <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
                   )}
                   {distribue && j.role && (
                     <span className="role-tag">
@@ -810,12 +810,12 @@ export default function Narrateur() {
               <div className="player-row eliminated" key={j.id}>
                 <div className="player-name">
                   {j.nom}
-                  {j.amoureux_id && <span title="Amoureux">🏹</span>}
+                  {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
                   {peresIds.includes(j.id) && (
-                    <span title="Père désigné">👨🏻</span>
+                    <span className="badge-icon" title="Père désigné">👨🏻</span>
                   )}
                   {j.role === "enfant-sauvage" && (
-                    <span title="Enfant Sauvage">👶🏻</span>
+                    <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
                   )}
                   {j.role && (
                     <span className="role-tag">
