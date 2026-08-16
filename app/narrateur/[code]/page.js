@@ -758,21 +758,23 @@ export default function Narrateur() {
           <div className="player-list">
             {vivants.map((j) => (
               <div className="player-row" key={j.id}>
-                <div className="player-name">
-                  <span className="dot" />
-                  {j.nom}
-                  {partie.maire_id === j.id && <span className="badge-icon" title="Maire">👑</span>}
-                  {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
-                  {peresIds.includes(j.id) && (
-                    <span className="badge-icon" title="Père désigné">👨🏻</span>
-                  )}
-                  {j.role === "enfant-sauvage" && (
-                    <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
-                  )}
+                <div className="player-name-block">
+                  <div className="player-name">
+                    <span className="dot" />
+                    {j.nom}
+                    {partie.maire_id === j.id && <span className="badge-icon" title="Maire">👑</span>}
+                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
+                    {peresIds.includes(j.id) && (
+                      <span className="badge-icon" title="Père désigné">👨🏻</span>
+                    )}
+                    {j.role === "enfant-sauvage" && (
+                      <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
+                    )}
+                  </div>
                   {distribue && j.role && (
-                    <span className="role-tag">
+                    <div className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role}
-                    </span>
+                    </div>
                   )}
                 </div>
                 <div
@@ -808,19 +810,21 @@ export default function Narrateur() {
 
             {morts.map((j) => (
               <div className="player-row eliminated" key={j.id}>
-                <div className="player-name">
-                  {j.nom}
-                  {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
-                  {peresIds.includes(j.id) && (
-                    <span className="badge-icon" title="Père désigné">👨🏻</span>
-                  )}
-                  {j.role === "enfant-sauvage" && (
-                    <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
-                  )}
+                <div className="player-name-block">
+                  <div className="player-name">
+                    {j.nom}
+                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
+                    {peresIds.includes(j.id) && (
+                      <span className="badge-icon" title="Père désigné">👨🏻</span>
+                    )}
+                    {j.role === "enfant-sauvage" && (
+                      <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
+                    )}
+                  </div>
                   {j.role && (
-                    <span className="role-tag">
+                    <div className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
-                    </span>
+                    </div>
                   )}
                 </div>
                 <button
