@@ -20,7 +20,17 @@ export default function CreerPartie() {
         const code = genererCode();
         const { data, error } = await supabase
           .from("parties")
-          .insert({ code, statut: "lobby", roles_config: {} })
+          .insert({
+            code,
+            statut: "lobby",
+            roles_config: {
+              "loup-garou": 2,
+              cupidon: 1,
+              sorciere: 1,
+              voyante: 1,
+              chasseur: 1,
+            },
+          })
           .select()
           .single();
 
