@@ -179,8 +179,8 @@ input[type="text"].code-input {
   background: var(--loup);
   color: #fff;
   border: none;
-  padding: 10px 16px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 700;
   border-radius: 8px;
   box-shadow: 0 4px 14px -6px var(--loup-glow);
@@ -193,14 +193,14 @@ input[type="text"].code-input {
 }
 
 .btn-remove {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   border: none;
   border-radius: 50%;
   background: rgba(172, 37, 69, 0.18);
   color: var(--loup);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -352,13 +352,12 @@ input[type="text"].code-input {
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
-  gap: 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  overflow: hidden;
   background: var(--bg-panel-raised);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 10px;
 }
 
 .player-row.eliminated {
@@ -368,23 +367,31 @@ input[type="text"].code-input {
 .player-name {
   font-weight: 500;
   font-size: 15px;
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
+  overflow: hidden;
   white-space: nowrap;
-  gap: 8px;
-  flex-shrink: 0;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.player-name .badge-icon {
+  margin-left: 6px;
+  font-size: 13px;
 }
 
 .player-name .dot {
+  display: inline-block;
+  vertical-align: middle;
   width: 7px;
   height: 7px;
+  margin-right: 6px;
   border-radius: 50%;
   background: var(--lanterne);
   box-shadow: 0 0 8px var(--lanterne-glow);
 }
 
 .player-name .role-tag {
+  margin-left: 6px;
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--muted);
