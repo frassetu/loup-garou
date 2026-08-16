@@ -16,6 +16,7 @@ export default function Narrateur() {
   const [distribution, setDistribution] = useState(false);
   const [erreur, setErreur] = useState("");
   const [copie, setCopie] = useState(false);
+  const [copieCode, setCopieCode] = useState(false);
   const [modeDistribution, setModeDistribution] = useState("auto"); // 'auto' | 'manuel'
   const [assignationManuelle, setAssignationManuelle] = useState({});
   const [choixMaireOuvert, setChoixMaireOuvert] = useState(false);
@@ -444,6 +445,12 @@ export default function Narrateur() {
     setTimeout(() => setCopie(false), 1800);
   }
 
+  function copierCode() {
+    navigator.clipboard.writeText(code);
+    setCopieCode(true);
+    setTimeout(() => setCopieCode(false), 1800);
+  }
+
   if (loading) {
     return (
       <main className="page">
@@ -477,17 +484,19 @@ export default function Narrateur() {
 
   return (
     <main className="page">
-      <div className="eyebrow">Tableau du narrateur</div>
-      <h1>Partie {code}</h1>
-
       <div className="code-banner">
         <div>
           <div className="code-value">{code}</div>
           <div className="code-hint">Lien joueur : {lienJoueur}</div>
         </div>
-        <button className="btn btn-secondary" onClick={copierLien}>
-          {copie ? "Copié ✓" : "Copier"}
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <button className="btn btn-secondary" onClick={copierCode}>
+            {copieCode ? "Copié ✓" : "Copier le code"}
+          </button>
+          <button className="btn btn-secondary" onClick={copierLien}>
+            {copie ? "Copié ✓" : "Copier le lien"}
+          </button>
+        </div>
       </div>
 
       {!distribue && (
@@ -571,7 +580,7 @@ export default function Narrateur() {
       )}
 
       {distribue && (
-        <div className={maire ? "card" : "card alert-card"}>
+        <div className={maire ? "card card-compact" : "card card-compact alert-card"}>
           <div className="role-row" style={{ border: "none", padding: 0 }}>
             <div>
               <div className="role-name">Maire du village</div>
@@ -624,7 +633,13 @@ export default function Narrateur() {
       )}
 
       {distribue && cupidonPresent && (
-        <div className={paireAmoureux && paireAmoureux[1] ? "card" : "card alert-card"}>
+        <div
+          className={
+            paireAmoureux && paireAmoureux[1]
+              ? "card card-compact"
+              : "card card-compact alert-card"
+          }
+        >
           <div className="role-row" style={{ border: "none", padding: 0 }}>
             <div>
               <div className="role-name">Couple d'amoureux</div>
@@ -680,8 +695,7 @@ export default function Narrateur() {
       )}
 
       {distribue && enfantsSauvages.length > 0 && (
-        <div className="card">
-          <h2>Modèle de l'Enfant Sauvage</h2>
+        <div className="card card-compact">
           <div className="stack">
             {enfantsSauvages.map((enfant) => {
               const modele = joueurs.find((j) => j.id === enfant.modele_id);
