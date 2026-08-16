@@ -364,14 +364,17 @@ input[type="text"].code-input {
   opacity: 0.4;
 }
 
+.player-name-block {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .player-name {
   font-weight: 500;
   font-size: 15px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .player-name .badge-icon {
@@ -390,11 +393,14 @@ input[type="text"].code-input {
   box-shadow: 0 0 8px var(--lanterne-glow);
 }
 
-.player-name .role-tag {
-  margin-left: 6px;
+.player-name-block .role-tag {
+  margin-top: 2px;
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .empty-state {
