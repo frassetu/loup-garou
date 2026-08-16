@@ -521,7 +521,9 @@ export default function Narrateur() {
                 {ROLES.filter((r) => r.id !== "villageois").map((role) => (
                   <div className="role-row" key={role.id}>
                     <div>
-                      <div className="role-name">{role.nom}</div>
+                      <div className="role-name">
+                        {role.emoji} {role.nom}
+                      </div>
                       <div className="role-camp">
                         {role.camp === "loups"
                           ? "Camp des loups"
@@ -566,7 +568,7 @@ export default function Narrateur() {
                   >
                     {ROLES.map((role) => (
                       <option key={role.id} value={role.id}>
-                        {role.nom}
+                        {role.emoji} {role.nom}
                       </option>
                     ))}
                   </select>
@@ -773,7 +775,7 @@ export default function Narrateur() {
                   </div>
                   {distribue && j.role && (
                     <div className="role-tag">
-                      {ROLES_BY_ID[j.role]?.nom || j.role}
+                      {ROLES_BY_ID[j.role]?.emoji} {ROLES_BY_ID[j.role]?.nom || j.role}
                     </div>
                   )}
                 </div>
@@ -823,7 +825,7 @@ export default function Narrateur() {
                   </div>
                   {j.role && (
                     <div className="role-tag">
-                      {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
+                      {ROLES_BY_ID[j.role]?.emoji} {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
                     </div>
                   )}
                 </div>
