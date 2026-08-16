@@ -775,7 +775,7 @@ export default function Narrateur() {
                     </span>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                   {distribue && (
                     <button
                       className="btn-danger"
@@ -790,7 +790,7 @@ export default function Narrateur() {
                     </button>
                   )}
                   <button
-                    className="btn-danger"
+                    className="btn-remove"
                     onClick={() => retirerJoueur(j.id)}
                     title="Retirer complètement ce joueur"
                   >
