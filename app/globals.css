@@ -235,20 +235,35 @@ input[type="text"].code-input {
   background: var(--bg-panel-raised);
   border: 1px dashed var(--border);
   border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 24px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  gap: 10px;
 }
 
 .code-banner .code-value {
   font-family: var(--font-mono);
-  font-size: 22px;
-  letter-spacing: 0.1em;
+  font-size: 18px;
+  letter-spacing: 0.08em;
   color: var(--lanterne);
 }
 
-.code-banner .code-hint {
+.code-banner .code-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.code-banner .btn-mini {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--moon);
+  font-family: var(--font-body);
   font-size: 12px;
-  color: var(--muted);
+  font-weight: 600;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .role-row {
