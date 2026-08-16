@@ -477,6 +477,7 @@ export default function Narrateur() {
   const maire = joueurs.find((j) => j.id === partie.maire_id);
   const cupidonPresent = joueurs.some((j) => j.role === "cupidon");
   const enfantsSauvages = joueurs.filter((j) => j.role === "enfant-sauvage");
+  const peresIds = enfantsSauvages.map((j) => j.modele_id).filter(Boolean);
   const premierAmoureux = joueurs.find((j) => j.amoureux_id);
   const paireAmoureux = premierAmoureux
     ? [premierAmoureux, joueurs.find((j) => j.id === premierAmoureux.amoureux_id)]
@@ -485,16 +486,13 @@ export default function Narrateur() {
   return (
     <main className="page">
       <div className="code-banner">
-        <div>
-          <div className="code-value">{code}</div>
-          <div className="code-hint">Lien joueur : {lienJoueur}</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <button className="btn btn-secondary" onClick={copierCode}>
-            {copieCode ? "Copié ✓" : "Copier le code"}
+        <div className="code-value">{code}</div>
+        <div className="code-actions">
+          <button className="btn-mini" onClick={copierCode}>
+            {copieCode ? "Copié ✓" : "Code"}
           </button>
-          <button className="btn btn-secondary" onClick={copierLien}>
-            {copie ? "Copié ✓" : "Copier le lien"}
+          <button className="btn-mini" onClick={copierLien}>
+            {copie ? "Copié ✓" : "Lien"}
           </button>
         </div>
       </div>
@@ -703,9 +701,10 @@ export default function Narrateur() {
                 <div key={enfant.id}>
                   <div className="role-row" style={{ border: "none", padding: 0 }}>
                     <div>
-                      <div className="role-name">{enfant.nom}</div>
+                      <div className="role-name">Enfant Sauvage</div>
                       <div className="role-camp">
-                        {modele ? `Modèle : ${modele.nom}` : "Aucun modèle désigné"}
+                        {enfant.nom} — Père :{" "}
+                        {modele ? modele.nom : "non désigné"}
                       </div>
                     </div>
                     <button
@@ -742,10 +741,6 @@ export default function Narrateur() {
               );
             })}
           </div>
-          <p className="lede" style={{ margin: "12px 0 0", fontSize: 12 }}>
-            Si le modèle est éliminé, l'app vous proposera de transformer
-            l'Enfant Sauvage en Loup-Garou automatiquement.
-          </p>
         </div>
       )}
 
@@ -768,6 +763,12 @@ export default function Narrateur() {
                   {j.nom}
                   {partie.maire_id === j.id && <span title="Maire">👑</span>}
                   {j.amoureux_id && <span title="Amoureux">🏹</span>}
+                  {peresIds.includes(j.id) && (
+                    <span title="Père désigné">👨🏻</span>
+                  )}
+                  {j.role === "enfant-sauvage" && (
+                    <span title="Enfant Sauvage">👶🏻</span>
+                  )}
                   {distribue && j.role && (
                     <span className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role}
@@ -804,6 +805,12 @@ export default function Narrateur() {
                 <div className="player-name">
                   {j.nom}
                   {j.amoureux_id && <span title="Amoureux">🏹</span>}
+                  {peresIds.includes(j.id) && (
+                    <span title="Père désigné">👨🏻</span>
+                  )}
+                  {j.role === "enfant-sauvage" && (
+                    <span title="Enfant Sauvage">👶🏻</span>
+                  )}
                   {j.role && (
                     <span className="role-tag">
                       {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
