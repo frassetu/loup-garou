@@ -557,10 +557,27 @@ input[type="text"].code-input {
   max-width: 320px;
 }
 
+.card-compact {
+  padding: 14px 16px;
+}
+
+.card-compact .role-name {
+  font-size: 14px;
+}
+
+.card-compact .role-camp {
+  font-size: 12px;
+}
+
+.card-compact .btn {
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .chip {
@@ -568,9 +585,9 @@ input[type="text"].code-input {
   background: var(--bg);
   color: var(--moon);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 7px 12px;
+  padding: 5px 10px;
   border-radius: 20px;
   cursor: pointer;
 }
