@@ -668,3 +668,27 @@ input[type="text"].code-input {
   line-height: 1.5;
   max-width: 320px;
 }
+
+.role-image {
+  width: 190px;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+}
+
+.maire-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.badge-mini-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
