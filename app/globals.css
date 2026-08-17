@@ -673,7 +673,6 @@ input[type="text"].code-input {
   width: 96px;
   height: 96px;
   object-fit: cover;
-  border-radius: 12px;
   margin-bottom: 8px;
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.6);
 }
