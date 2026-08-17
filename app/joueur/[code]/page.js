@@ -62,7 +62,7 @@ export default function Joueur() {
     })();
   }, [code, chargerPartie]);
 
-  // Abonnement temps rÃ©el Ã  sa propre ligne joueur + au statut de la partie
+  // Abonnement temps reel a sa propre ligne joueur + au statut de la partie
   useEffect(() => {
     if (!joueur?.id || !partie?.id) return;
 
@@ -109,9 +109,9 @@ export default function Joueur() {
     };
   }, [joueur?.id, partie?.id, code]);
 
-  // Si iOS a mis l'app en pause (retour Ã  l'Ã©cran d'accueil, changement
-  // d'app) pendant que le narrateur distribuait les rÃ´les, la connexion
-  // temps rÃ©el peut avoir ratÃ© l'Ã©vÃ©nement. On revÃ©rifie au retour.
+  // Si iOS a mis l'app en pause (retour a l'ecran d'accueil, changement
+  // d'app) pendant que le narrateur distribuait les roles, la connexion
+  // temps reel peut avoir rate l'evenement. On reverifie au retour.
   useEffect(() => {
     async function surRetourApp() {
       if (document.visibilityState !== "visible") return;
@@ -149,8 +149,8 @@ export default function Joueur() {
     };
   }, [code, joueur?.id]);
 
-  // RÃ©cupÃ¨re le prÃ©nom de l'amoureux dÃ©signÃ© par Cupidon, pour l'afficher
-  // sur la carte de rÃ´le du joueur concernÃ©.
+  // Recupere le prenom de l'amoureux designe par Cupidon, pour l'afficher
+  // sur la carte de role du joueur concerne.
   useEffect(() => {
     if (!joueur?.amoureux_id) {
       setAmoureuxNom(null);
@@ -166,7 +166,7 @@ export default function Joueur() {
     })();
   }, [joueur?.amoureux_id]);
 
-  // RÃ©cupÃ¨re le prÃ©nom du "pÃ¨re" (modÃ¨le) choisi par l'Enfant Sauvage.
+  // Recupere le prenom du "pere" (modele) choisi par l'Enfant Sauvage.
   useEffect(() => {
     if (!joueur || joueur.role !== "enfant-sauvage" || !joueur.modele_id) {
       setPereNom(null);
@@ -201,7 +201,7 @@ export default function Joueur() {
       .single();
 
     if (error) {
-      setErreur("Impossible de rejoindre la partie. RÃ©essayez.");
+      setErreur("Impossible de rejoindre la partie. R\u{e9}essayez.");
       return;
     }
 
@@ -232,7 +232,7 @@ export default function Joueur() {
     return (
       <main className="page">
         <Link href="/" className="back-link">
-          â Accueil
+          {"\u2190 Accueil"}
         </Link>
         <h1>Introuvable</h1>
         <p className="lede">{erreur}</p>
@@ -240,7 +240,7 @@ export default function Joueur() {
     );
   }
 
-  // Ãcran de saisie du nom
+  // Ecran de saisie du nom
   if (!rejoint) {
     return (
       <main className="page">
@@ -252,17 +252,17 @@ export default function Joueur() {
         <form className="stack" onSubmit={rejoindrePartie}>
           <input
             type="text"
-            placeholder="Ton prÃ©nom"
+            placeholder="Ton pr\u{e9}nom"
             value={nom}
             onChange={(e) => setNom(e.target.value)}
-            maxLength={12}
+            maxLength={10}
             autoFocus
           />
           <p
             className="lede"
             style={{ margin: "-4px 0 0", fontSize: 12, textAlign: "right" }}
           >
-            {nom.length}/12
+            {nom.length}/10
           </p>
           <button
             type="submit"
@@ -277,14 +277,17 @@ export default function Joueur() {
     );
   }
 
-  // Joueur Ã©liminÃ©
+  // Joueur elimine
   if (joueur && joueur.vivant === false) {
     return (
       <main className="page">
         <div className="eliminated-screen">
-          <div className="role-title">Tu as Ã©tÃ© Ã©liminÃ©</div>
+          <div className="role-title">
+            {"Tu as \u00e9t\u00e9 \u00e9limin\u00e9"}
+          </div>
           <p className="lede">
-            Ton rÃ´le Ã©tait : {ROLES_BY_ID[joueur.role]?.nom || "inconnu"}.
+            {"Ton r\u00f4le \u00e9tait : "}
+            {ROLES_BY_ID[joueur.role]?.nom || "inconnu"}.
             <br />
             Reste discret et suis la suite de la partie.
           </p>
@@ -300,8 +303,9 @@ export default function Joueur() {
         <div className="eyebrow">Partie {code}</div>
         <h1>C'est bon, {joueur?.nom} !</h1>
         <p className="lede">
-          Tu es dans la partie. Le narrateur va bientÃ´t distribuer les
-          rÃ´les â garde cette page ouverte.
+          {
+            "Tu es dans la partie. Le narrateur va bient\u00f4t distribuer les r\u00f4les \u2014 garde cette page ouverte."
+          }
         </p>
         <div className="waiting-pulse">
           <span />
@@ -319,7 +323,7 @@ export default function Joueur() {
     );
   }
 
-  // RÃ´le rÃ©vÃ©lÃ©
+  // Role revele
   const role = ROLES_BY_ID[joueur.role];
   const campClass =
     role?.camp === "loups"
@@ -346,20 +350,25 @@ export default function Joueur() {
         {estMaire && (
           <div className="maire-badge">
             <img className="badge-mini-icon" src="/roles/maire.webp" alt="Maire" />
-            Vous Ãªtes maire, en cas d'Ã©galitÃ© de votes, votre voix compte
-            double.
+            {
+              "Vous \u00eates maire, en cas d'\u00e9galit\u00e9 de votes, votre voix compte double."
+            }
           </div>
         )}
         {amoureuxNom && (
           <div className="amoureux-badge">
-            ð Tu es amoureux(se) de {amoureuxNom}. Si l'un de vous meurt,
-            l'autre meurt aussi de chagrin.
+            {"\u{1F498} Tu es amoureux(se) de "}
+            {amoureuxNom}
+            {". Si l'un de vous meurt, l'autre meurt aussi de chagrin."}
           </div>
         )}
         {pereNom && (
           <div className="amoureux-badge">
-            ð§ Ton pÃ¨re dÃ©signÃ© est {pereNom}. S'il meurt, tu deviens
-            Loup-Garou dÃ¨s cette nuit-lÃ .
+            {"\u{1F9D2} Ton p\u00e8re d\u00e9sign\u00e9 est "}
+            {pereNom}
+            {
+              ". S'il meurt, tu deviens Loup-Garou d\u00e8s cette nuit-l\u00e0."
+            }
           </div>
         )}
       </div>
