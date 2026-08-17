@@ -606,13 +606,10 @@ export default function Narrateur() {
                   ))}
               </div>
               <p className="lede" style={{ marginTop: 16, marginBottom: 0, fontSize: 13 }}>
-                {
-                  "Les joueurs sans r\u00f4le sp\u00e9cial recevront automatiquement le r\u00f4le Villageois. "
-                }
                 {totalRolesChoisis}
                 {" r\u00f4le(s) choisi(s) pour "}
                 {joueursVivants}
-                {" joueur(s) inscrit(s)."}
+                {" joueur(s) \u2014 le reste recevra Villageois."}
               </p>
             </>
           ) : (
@@ -832,7 +829,7 @@ export default function Narrateur() {
                     {partie.maire_id === j.id && <span className="badge-icon" title="Maire">{EMOJI.maire}</span>}
                     {j.amoureux_id && <span className="badge-icon" title="Amoureux">{EMOJI.amoureux}</span>}
                     {peresIds.includes(j.id) && (
-                      <span className="badge-icon" title="P\u{e8}re d\u{e9}sign\u{e9}">{EMOJI.pere}</span>
+                      <span className="badge-icon" title={"P\u00e8re d\u00e9sign\u00e9"}>{EMOJI.pere}</span>
                     )}
                     {j.role === "enfant-sauvage" && (
                       <span className="badge-icon" title="Enfant Sauvage">{EMOJI.enfant}</span>
@@ -867,7 +864,7 @@ export default function Narrateur() {
                   <button
                     className="btn-remove"
                     onClick={() => retirerJoueur(j.id)}
-                    title="Retirer compl\u{e8}tement ce joueur"
+                    title={"Retirer compl\u00e8tement ce joueur"}
                   >
                     {"\u2715"}
                   </button>
@@ -882,7 +879,7 @@ export default function Narrateur() {
                     {j.nom}
                     {j.amoureux_id && <span className="badge-icon" title="Amoureux">{EMOJI.amoureux}</span>}
                     {peresIds.includes(j.id) && (
-                      <span className="badge-icon" title="P\u{e8}re d\u{e9}sign\u{e9}">{EMOJI.pere}</span>
+                      <span className="badge-icon" title={"P\u00e8re d\u00e9sign\u00e9"}>{EMOJI.pere}</span>
                     )}
                     {j.role === "enfant-sauvage" && (
                       <span className="badge-icon" title="Enfant Sauvage">{EMOJI.enfant}</span>
