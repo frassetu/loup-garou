@@ -424,8 +424,8 @@ input[type="text"].code-input {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 40px 24px;
-  margin-top: 24px;
+  padding: 18px 20px;
+  margin-top: 8px;
   border-radius: 18px;
   border: 1px solid var(--border);
   animation: reveal 0.5s ease;
@@ -469,25 +469,25 @@ input[type="text"].code-input {
 
 .role-reveal .camp-label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 14px;
+  margin-bottom: 4px;
 }
 
 .role-reveal .role-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 40px;
-  margin-bottom: 18px;
+  font-size: 22px;
+  margin-bottom: 4px;
 }
 
 .role-reveal .role-desc {
   color: var(--moon);
   opacity: 0.85;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.45;
   max-width: 400px;
 }
 
@@ -604,14 +604,14 @@ input[type="text"].code-input {
 }
 
 .maire-badge {
-  margin-top: 18px;
-  padding: 12px 16px;
+  margin-top: 10px;
+  padding: 8px 12px;
   border-radius: 10px;
   background: rgba(209, 162, 90, 0.12);
   border: 1px solid rgba(209, 162, 90, 0.4);
   color: var(--lanterne);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.35;
   max-width: 320px;
 }
 
@@ -658,24 +658,24 @@ input[type="text"].code-input {
 }
 
 .amoureux-badge {
-  margin-top: 14px;
-  padding: 12px 16px;
+  margin-top: 8px;
+  padding: 8px 12px;
   border-radius: 10px;
   background: rgba(172, 37, 69, 0.12);
   border: 1px solid rgba(172, 37, 69, 0.4);
   color: var(--loup);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.35;
   max-width: 320px;
 }
 
 .role-image {
-  width: 190px;
-  height: 190px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.6);
 }
 
 .maire-badge {
@@ -686,9 +686,28 @@ input[type="text"].code-input {
 }
 
 .badge-mini-icon {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   flex-shrink: 0;
   object-fit: cover;
+}
+
+.autres-roles-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 0 2px;
+  margin-top: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.autres-roles-toggle:hover {
+  color: var(--lanterne);
 }
