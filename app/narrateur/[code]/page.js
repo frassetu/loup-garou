@@ -7,6 +7,17 @@ import { supabase } from "../../../lib/supabaseClient";
 import { ROLES, ROLES_BY_ID } from "../../../lib/roles";
 import { melanger } from "../../../lib/utils";
 
+// Emojis en code universel (immunise le fichier contre les problemes
+// d'encodage lors des copier-coller).
+const EMOJI = {
+  maire: "\u{1F451}",
+  amoureux: "\u{1F3F9}",
+  pere: "\u{1F468}\u{1F3FB}",
+  enfant: "\u{1F476}\u{1F3FB}",
+};
+
+const ROLES_PRINCIPAUX = ["loup-garou", "voyante", "sorciere", "chasseur", "cupidon"];
+
 export default function Narrateur() {
   const { code } = useParams();
   const [partie, setPartie] = useState(null);
@@ -23,6 +34,7 @@ export default function Narrateur() {
   const [choixAmoureuxA, setChoixAmoureuxA] = useState("");
   const [choixCupidonOuvert, setChoixCupidonOuvert] = useState(false);
   const [enfantOuvertId, setEnfantOuvertId] = useState(null);
+  const [autresRolesOuvert, setAutresRolesOuvert] = useState(false);
 
   const lienJoueur = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -59,7 +71,7 @@ export default function Narrateur() {
     chargerDonnees();
   }, [chargerDonnees]);
 
-  // Abonnement temps réel : joueurs qui rejoignent/partent, statut de la partie
+  // Abonnement temps reel : joueurs qui rejoignent/partent, statut de la partie
   useEffect(() => {
     if (!partie?.id) return;
 
@@ -97,9 +109,9 @@ export default function Narrateur() {
     };
   }, [partie?.id, chargerDonnees]);
 
-  // Quand l'app iPhone revient au premier plan (retour depuis l'écran
-  // d'accueil ou changement d'app), la connexion temps réel peut avoir été
-  // coupée par iOS. On force un rechargement des données à ce moment-là,
+  // Quand l'app iPhone revient au premier plan (retour depuis l'ecran
+  // d'accueil ou changement d'app), la connexion temps reel peut avoir ete
+  // coupee par iOS. On force un rechargement des donnees a ce moment-la,
   // et on s'assure que la connexion Realtime est bien active.
   useEffect(() => {
     function surRetourApp() {
@@ -147,16 +159,16 @@ export default function Narrateur() {
     }
     if (totalRolesChoisis > joueursVivants) {
       setErreur(
-        `Vous avez sélectionné ${totalRolesChoisis} rôles pour seulement ${joueursVivants} joueurs.`
+        `Vous avez s\u{e9}lectionn\u{e9} ${totalRolesChoisis} r\u{f4}les pour seulement ${joueursVivants} joueurs.`
       );
       return;
     }
 
     setDistribution(true);
 
-    // On revérifie la liste de joueurs directement en base juste avant
-    // d'envoyer les rôles, pour éviter qu'un joueur ayant rejoint entre
-    // le dernier rafraîchissement et le clic ne soit oublié.
+    // On reverifie la liste de joueurs directement en base juste avant
+    // d'envoyer les roles, pour eviter qu'un joueur ayant rejoint entre
+    // le dernier rafraichissement et le clic ne soit oublie.
     const { data: joueursFrais, error: fetchErr } = await supabase
       .from("joueurs")
       .select("*")
@@ -164,30 +176,30 @@ export default function Narrateur() {
       .order("created_at", { ascending: true });
 
     if (fetchErr || !joueursFrais) {
-      setErreur("Impossible de récupérer la liste des joueurs, réessayez.");
+      setErreur("Impossible de r\u{e9}cup\u{e9}rer la liste des joueurs, r\u{e9}essayez.");
       setDistribution(false);
       return;
     }
 
     if (totalRolesChoisis > joueursFrais.length) {
       setErreur(
-        `Vous avez sélectionné ${totalRolesChoisis} rôles pour seulement ${joueursFrais.length} joueur(s) réellement inscrit(s). Ajustez et réessayez.`
+        `Vous avez s\u{e9}lectionn\u{e9} ${totalRolesChoisis} r\u{f4}les pour seulement ${joueursFrais.length} joueur(s) r\u{e9}ellement inscrit(s). Ajustez et r\u{e9}essayez.`
       );
       setDistribution(false);
       return;
     }
 
-    // Construit la pile de rôles : les rôles choisis + des Villageois
-    // pour compléter jusqu'au nombre de joueurs.
+    // Construit la pile de roles : les roles choisis + des Villageois
+    // pour completer jusqu'au nombre de joueurs.
     const pileBase = [];
     for (const [roleId, count] of Object.entries(rolesConfig)) {
       for (let i = 0; i < count; i++) pileBase.push(roleId);
     }
     while (pileBase.length < joueursFrais.length) pileBase.push("villageois");
 
-    // On tire plusieurs mélanges et on garde celui qui redonne le moins
-    // souvent le même rôle qu'à la manche précédente à un même joueur —
-    // ça évite l'impression que "c'est toujours la même personne".
+    // On tire plusieurs melanges et on garde celui qui redonne le moins
+    // souvent le meme role qu'a la manche precedente a un meme joueur -
+    // ca evite l'impression que "c'est toujours la meme personne".
     let meilleurePile = melanger(pileBase);
     let meilleurScore = joueursFrais.filter(
       (j, i) => j.dernier_role && j.dernier_role === meilleurePile[i]
@@ -217,7 +229,7 @@ export default function Narrateur() {
     const echecs = resultats.filter((r) => r.error || !r.data?.length);
     if (echecs.length > 0) {
       setErreur(
-        `${echecs.length} joueur(s) n'ont pas reçu leur rôle correctement (problème réseau). Cliquez à nouveau sur "Distribuer" pour réessayer.`
+        `${echecs.length} joueur(s) n'ont pas re\u{e7}u leur r\u{f4}le correctement (probl\u{e8}me r\u{e9}seau). Cliquez \u{e0} nouveau sur "Distribuer" pour r\u{e9}essayer.`
       );
       setDistribution(false);
       return;
@@ -247,7 +259,7 @@ export default function Narrateur() {
       .order("created_at", { ascending: true });
 
     if (fetchErr || !joueursFrais) {
-      setErreur("Impossible de récupérer la liste des joueurs, réessayez.");
+      setErreur("Impossible de r\u{e9}cup\u{e9}rer la liste des joueurs, r\u{e9}essayez.");
       setDistribution(false);
       return;
     }
@@ -265,7 +277,7 @@ export default function Narrateur() {
     const echecs = resultats.filter((r) => r.error || !r.data?.length);
     if (echecs.length > 0) {
       setErreur(
-        `${echecs.length} joueur(s) n'ont pas reçu leur rôle correctement (problème réseau). Cliquez à nouveau sur "Distribuer" pour réessayer.`
+        `${echecs.length} joueur(s) n'ont pas re\u{e7}u leur r\u{f4}le correctement (probl\u{e8}me r\u{e9}seau). Cliquez \u{e0} nouveau sur "Distribuer" pour r\u{e9}essayer.`
       );
       setDistribution(false);
       return;
@@ -302,7 +314,7 @@ export default function Narrateur() {
       const amoureux = joueurs.find((j) => j.id === joueur.amoureux_id);
       if (amoureux && amoureux.vivant) {
         const confirmer = window.confirm(
-          `${joueur.nom} était amoureux(se) de ${amoureux.nom}.\n\nSelon les règles, ${amoureux.nom} meurt aussi de chagrin.\n\nL'éliminer également ?`
+          `${joueur.nom} \u{e9}tait amoureux(se) de ${amoureux.nom}.\n\nSelon les r\u{e8}gles, ${amoureux.nom} meurt aussi de chagrin.\n\nL'\u{e9}liminer \u{e9}galement ?`
         );
         if (confirmer) {
           await marquerVivantFaux(amoureux.id);
@@ -310,7 +322,7 @@ export default function Narrateur() {
       }
     }
 
-    // Enfant Sauvage : si son modèle vient de mourir, il devient Loup-Garou
+    // Enfant Sauvage : si son modele vient de mourir, il devient Loup-Garou
     const enfants = joueurs.filter(
       (j) =>
         j.modele_id === joueurId &&
@@ -320,7 +332,7 @@ export default function Narrateur() {
     );
     for (const enfant of enfants) {
       const confirmer = window.confirm(
-        `${joueur?.nom || "Ce joueur"} était le modèle de l'Enfant Sauvage (${enfant.nom}).\n\nSelon les règles, ${enfant.nom} devient Loup-Garou dès maintenant.\n\nEffectuer la transformation ?`
+        `${joueur?.nom || "Ce joueur"} \u{e9}tait le mod\u{e8}le de l'Enfant Sauvage (${enfant.nom}).\n\nSelon les r\u{e8}gles, ${enfant.nom} devient Loup-Garou d\u{e8}s maintenant.\n\nEffectuer la transformation ?`
       );
       if (confirmer) {
         await supabase
@@ -404,13 +416,13 @@ export default function Narrateur() {
   async function nouvellePartie() {
     if (
       !window.confirm(
-        "Remettre tous les joueurs en jeu pour une nouvelle manche ? Les rôles et le maire seront effacés."
+        "Remettre tous les joueurs en jeu pour une nouvelle manche ? Les r\u{f4}les et le maire seront effac\u{e9}s."
       )
     )
       return;
 
-    // On garde une trace du rôle de cette manche pour éviter de le
-    // redonner directement à la même personne à la prochaine distribution.
+    // On garde une trace du role de cette manche pour eviter de le
+    // redonner directement a la meme personne a la prochaine distribution.
     const { data: joueursActuels } = await supabase
       .from("joueurs")
       .select("id, role")
@@ -463,7 +475,7 @@ export default function Narrateur() {
     return (
       <main className="page">
         <Link href="/" className="back-link">
-          ← Retour
+          {"\u2190 Retour"}
         </Link>
         <h1>Partie introuvable</h1>
         <p className="lede">{erreur}</p>
@@ -489,23 +501,23 @@ export default function Narrateur() {
         <div className="code-value">{code}</div>
         <div className="code-actions">
           <button className="btn-mini" onClick={copierCode}>
-            {copieCode ? "Copié ✓" : "Code"}
+            {copieCode ? "Copi\u{e9} \u{2713}" : "Code"}
           </button>
           <button className="btn-mini" onClick={copierLien}>
-            {copie ? "Copié ✓" : "Lien"}
+            {copie ? "Copi\u{e9} \u{2713}" : "Lien"}
           </button>
         </div>
       </div>
 
       {!distribue && (
         <div className="card">
-          <h2>Distribution des rôles</h2>
+          <h2>{"Distribution des r\u00f4les"}</h2>
           <div className="mode-switch">
             <button
               className={modeDistribution === "auto" ? "mode-btn active" : "mode-btn"}
               onClick={() => setModeDistribution("auto")}
             >
-              Aléatoire
+              {"Al\u00e9atoire"}
             </button>
             <button
               className={modeDistribution === "manuel" ? "mode-btn active" : "mode-btn"}
@@ -518,7 +530,7 @@ export default function Narrateur() {
           {modeDistribution === "auto" ? (
             <>
               <div className="stack" style={{ marginTop: 16 }}>
-                {ROLES.filter((r) => r.id !== "villageois").map((role) => (
+                {ROLES.filter((r) => ROLES_PRINCIPAUX.includes(r.id)).map((role) => (
                   <div className="role-row" key={role.id}>
                     <div>
                       <div className="role-name">
@@ -537,25 +549,77 @@ export default function Narrateur() {
                         onClick={() => majRole(role.id, -1)}
                         disabled={(rolesConfig[role.id] || 0) === 0}
                       >
-                        −
+                        {"\u2212"}
                       </button>
                       <span className="count">{rolesConfig[role.id] || 0}</span>
                       <button onClick={() => majRole(role.id, 1)}>+</button>
                     </div>
                   </div>
                 ))}
+
+                <button
+                  className="autres-roles-toggle"
+                  onClick={() => setAutresRolesOuvert((v) => !v)}
+                >
+                  {"Autres r\u00f4les "}
+                  <span
+                    style={{
+                      display: "inline-block",
+                      transition: "transform 0.15s ease",
+                      transform: autresRolesOuvert
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                    }}
+                  >
+                    {"\u25be"}
+                  </span>
+                </button>
+
+                {autresRolesOuvert &&
+                  ROLES.filter(
+                    (r) => r.id !== "villageois" && !ROLES_PRINCIPAUX.includes(r.id)
+                  ).map((role) => (
+                    <div className="role-row" key={role.id}>
+                      <div>
+                        <div className="role-name">
+                          {role.emoji} {role.nom}
+                        </div>
+                        <div className="role-camp">
+                          {role.camp === "loups"
+                            ? "Camp des loups"
+                            : role.camp === "mixte"
+                            ? "Camp au choix"
+                            : "Camp du village"}
+                        </div>
+                      </div>
+                      <div className="stepper">
+                        <button
+                          onClick={() => majRole(role.id, -1)}
+                          disabled={(rolesConfig[role.id] || 0) === 0}
+                        >
+                          {"\u2212"}
+                        </button>
+                        <span className="count">{rolesConfig[role.id] || 0}</span>
+                        <button onClick={() => majRole(role.id, 1)}>+</button>
+                      </div>
+                    </div>
+                  ))}
               </div>
               <p className="lede" style={{ marginTop: 16, marginBottom: 0, fontSize: 13 }}>
-                Les joueurs sans rôle spécial recevront automatiquement le rôle
-                Villageois. {totalRolesChoisis} rôle(s) choisi(s) pour{" "}
-                {joueursVivants} joueur(s) inscrit(s).
+                {
+                  "Les joueurs sans r\u00f4le sp\u00e9cial recevront automatiquement le r\u00f4le Villageois. "
+                }
+                {totalRolesChoisis}
+                {" r\u00f4le(s) choisi(s) pour "}
+                {joueursVivants}
+                {" joueur(s) inscrit(s)."}
               </p>
             </>
           ) : (
             <div className="stack" style={{ marginTop: 16 }}>
               {joueurs.length === 0 && (
                 <p className="lede" style={{ margin: 0 }}>
-                  En attente de joueurs avant de pouvoir leur attribuer un rôle.
+                  {"En attente de joueurs avant de pouvoir leur attribuer un r\u00f4le."}
                 </p>
               )}
               {joueurs.map((j) => (
@@ -585,14 +649,14 @@ export default function Narrateur() {
             <div>
               <div className="role-name">Maire du village</div>
               <div className="role-camp">
-                {maire ? `👑 ${maire.nom}` : "Aucun maire désigné"}
+                {maire ? `\u{1f451} ${maire.nom}` : "Aucun maire d\u{e9}sign\u{e9}"}
               </div>
             </div>
             <button
               className="btn btn-secondary"
               onClick={() => setChoixMaireOuvert((v) => !v)}
             >
-              {maire ? "Changer" : "Désigner"}
+              {maire ? "Changer" : "D\u{e9}signer"}
             </button>
           </div>
 
@@ -645,15 +709,15 @@ export default function Narrateur() {
               <div className="role-name">Couple d'amoureux</div>
               <div className="role-camp">
                 {paireAmoureux && paireAmoureux[1]
-                  ? `💘 ${paireAmoureux[0].nom} + ${paireAmoureux[1].nom}`
-                  : "Aucun couple désigné"}
+                  ? `\u{1f498} ${paireAmoureux[0].nom} + ${paireAmoureux[1].nom}`
+                  : "Aucun couple d\u{e9}sign\u{e9}"}
               </div>
             </div>
             <button
               className="btn btn-secondary"
               onClick={() => setChoixCupidonOuvert((v) => !v)}
             >
-              {paireAmoureux ? "Changer" : "Désigner"}
+              {paireAmoureux ? "Changer" : "D\u{e9}signer"}
             </button>
           </div>
 
@@ -705,8 +769,9 @@ export default function Narrateur() {
                     <div>
                       <div className="role-name">Enfant Sauvage</div>
                       <div className="role-camp">
-                        {enfant.nom} — Père :{" "}
-                        {modele ? modele.nom : "non désigné"}
+                        {enfant.nom}
+                        {"\u2014 P\u00e8re : "}
+                        {modele ? modele.nom : "non d\u{e9}sign\u{e9}"}
                       </div>
                     </div>
                     <button
@@ -717,7 +782,7 @@ export default function Narrateur() {
                         )
                       }
                     >
-                      {modele ? "Changer" : "Désigner"}
+                      {modele ? "Changer" : "D\u{e9}signer"}
                     </button>
                   </div>
                   {enfantOuvertId === enfant.id && (
@@ -764,13 +829,13 @@ export default function Narrateur() {
                   <div className="player-name">
                     <span className="dot" />
                     {j.nom}
-                    {partie.maire_id === j.id && <span className="badge-icon" title="Maire">👑</span>}
-                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
+                    {partie.maire_id === j.id && <span className="badge-icon" title="Maire">{EMOJI.maire}</span>}
+                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">{EMOJI.amoureux}</span>}
                     {peresIds.includes(j.id) && (
-                      <span className="badge-icon" title="Père désigné">👨🏻</span>
+                      <span className="badge-icon" title="P\u{e8}re d\u{e9}sign\u{e9}">{EMOJI.pere}</span>
                     )}
                     {j.role === "enfant-sauvage" && (
-                      <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
+                      <span className="badge-icon" title="Enfant Sauvage">{EMOJI.enfant}</span>
                     )}
                   </div>
                   {distribue && j.role && (
@@ -796,15 +861,15 @@ export default function Narrateur() {
                           : undefined
                       }
                     >
-                      Éliminer
+                      {"\u00c9liminer"}
                     </button>
                   )}
                   <button
                     className="btn-remove"
                     onClick={() => retirerJoueur(j.id)}
-                    title="Retirer complètement ce joueur"
+                    title="Retirer compl\u{e8}tement ce joueur"
                   >
-                    ✕
+                    {"\u2715"}
                   </button>
                 </div>
               </div>
@@ -815,17 +880,18 @@ export default function Narrateur() {
                 <div className="player-name-block">
                   <div className="player-name">
                     {j.nom}
-                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">🏹</span>}
+                    {j.amoureux_id && <span className="badge-icon" title="Amoureux">{EMOJI.amoureux}</span>}
                     {peresIds.includes(j.id) && (
-                      <span className="badge-icon" title="Père désigné">👨🏻</span>
+                      <span className="badge-icon" title="P\u{e8}re d\u{e9}sign\u{e9}">{EMOJI.pere}</span>
                     )}
                     {j.role === "enfant-sauvage" && (
-                      <span className="badge-icon" title="Enfant Sauvage">👶🏻</span>
+                      <span className="badge-icon" title="Enfant Sauvage">{EMOJI.enfant}</span>
                     )}
                   </div>
                   {j.role && (
                     <div className="role-tag">
-                      {ROLES_BY_ID[j.role]?.emoji} {ROLES_BY_ID[j.role]?.nom || j.role} · éliminé
+                      {ROLES_BY_ID[j.role]?.emoji} {ROLES_BY_ID[j.role]?.nom || j.role}
+                      {" \u00b7 \u00e9limin\u00e9"}
                     </div>
                   )}
                 </div>
@@ -834,7 +900,7 @@ export default function Narrateur() {
                   style={{ flexShrink: 0 }}
                   onClick={() => retablirJoueur(j.id)}
                 >
-                  Rétablir
+                  {"R\u00e9tablir"}
                 </button>
               </div>
             ))}
@@ -852,11 +918,11 @@ export default function Narrateur() {
             (modeDistribution === "auto" && !peutDistribuerAuto)
           }
         >
-          {distribution ? "Distribution..." : "Distribuer les rôles"}
+          {distribution ? "Distribution..." : "Distribuer les r\u{f4}les"}
         </button>
       ) : (
         <button className="btn btn-secondary btn-block" onClick={nouvellePartie}>
-          Nouvelle manche (mêmes joueurs)
+          {"Nouvelle manche (m\u00eames joueurs)"}
         </button>
       )}
       {erreur && <p className="error-msg">{erreur}</p>}
