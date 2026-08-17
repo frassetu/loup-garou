@@ -252,7 +252,7 @@ export default function Joueur() {
         <form className="stack" onSubmit={rejoindrePartie}>
           <input
             type="text"
-            placeholder="Ton pr\u{e9}nom"
+            placeholder={"Ton pr\u00e9nom"}
             value={nom}
             onChange={(e) => setNom(e.target.value)}
             maxLength={10}
