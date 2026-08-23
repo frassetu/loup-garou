@@ -709,3 +709,14 @@ input[type="text"].code-input {
 .autres-roles-toggle:hover {
   color: var(--lanterne);
 }
+
+.partie-counter {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.45;
+  z-index: 5;
+}
