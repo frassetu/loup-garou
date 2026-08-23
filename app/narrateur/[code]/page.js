@@ -240,6 +240,8 @@ export default function Narrateur() {
       .update({ statut: "distribue" })
       .eq("id", partie.id);
 
+    supabase.rpc("increment_parties_jouees").then(() => {});
+
     setDistribution(false);
   }
 
@@ -287,6 +289,8 @@ export default function Narrateur() {
       .from("parties")
       .update({ statut: "distribue" })
       .eq("id", partie.id);
+
+    supabase.rpc("increment_parties_jouees").then(() => {});
 
     setDistribution(false);
   }
